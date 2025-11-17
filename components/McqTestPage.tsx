@@ -130,6 +130,10 @@ const McqTestPage: React.FC<{ onEndSession: () => void }> = ({ onEndSession }) =
     setProctoringStatus('error');
     setProctoringError(err);
   }, []);
+
+  const handleProctoringReady = useCallback(() => {
+    setProctoringStatus('ready');
+  }, []);
   
   const handleSelectSubject = async (subject: TechnicalSubject) => {
     setSelectedSubject(subject);
@@ -262,7 +266,7 @@ const McqTestPage: React.FC<{ onEndSession: () => void }> = ({ onEndSession }) =
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-500">Please check your browser for a permission prompt.</p>
         <div className="opacity-0 invisible absolute">
           <ProctoringView
-            onReady={useCallback(() => setProctoringStatus('ready'), [])}
+            onReady={handleProctoringReady}
             onError={handleProctoringError}
           />
         </div>
