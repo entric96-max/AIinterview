@@ -1,0 +1,8 @@
+{
+  "name": "AI Interview Proctor",
+  "description": "An AI-powered interview platform that conducts resume-based interviews and technical MCQ tests under proctored conditions, using camera, microphone, and optional screen sharing.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
