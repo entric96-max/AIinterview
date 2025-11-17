@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { MCQ, TechnicalSubject } from '../types';
 import { generateMcqTest, summarizeMcqPerformance } from '../services/geminiService';
 import ProctoringView from './ProctoringView';
@@ -125,6 +126,11 @@ const McqTestPage: React.FC<{ onEndSession: () => void }> = ({ onEndSession }) =
   const [proctoringError, setProctoringError] = useState<string>('');
   const [performanceSummary, setPerformanceSummary] = useState<PerformanceSummary | null>(null);
 
+  const handleProctoringError = useCallback((err: string) => {
+    setProctoringStatus('error');
+    setProctoringError(err);
+  }, []);
+  
   const handleSelectSubject = async (subject: TechnicalSubject) => {
     setSelectedSubject(subject);
     setMcqState('loading');
@@ -256,8 +262,8 @@ const McqTestPage: React.FC<{ onEndSession: () => void }> = ({ onEndSession }) =
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-500">Please check your browser for a permission prompt.</p>
         <div className="opacity-0 invisible absolute">
           <ProctoringView
-            onReady={() => setProctoringStatus('ready')}
-            onError={(err) => { setProctoringStatus('error'); setProctoringError(err); }}
+            onReady={useCallback(() => setProctoringStatus('ready'), [])}
+            onError={handleProctoringError}
           />
         </div>
       </div>
@@ -281,7 +287,7 @@ const McqTestPage: React.FC<{ onEndSession: () => void }> = ({ onEndSession }) =
       {renderInterviewContent()}
       <ProctoringView 
         onReady={() => {}} 
-        onError={(err) => { setProctoringStatus('error'); setProctoringError(err); }} 
+        onError={handleProctoringError} 
       />
     </>
   );

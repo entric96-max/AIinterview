@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { ScreenIcon } from './icons';
 
 interface ProctoringViewProps {
@@ -112,4 +112,4 @@ const ProctoringView: React.FC<ProctoringViewProps> = ({ onReady, onError, enabl
   );
 };
 
-export default ProctoringView;
+export default memo(ProctoringView);

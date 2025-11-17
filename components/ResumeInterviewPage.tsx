@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { generateQuestionsFromResume, evaluateAnswer, summarizeInterviewPerformance } from '../services/geminiService';
 import ProctoringView from './ProctoringView';
@@ -170,7 +171,7 @@ const ResumeInterviewPage: React.FC<{
   const [isAdvancing, setIsAdvancing] = useState(false); // State lock to prevent race conditions
   const [recognitionError, setRecognitionError] = useState<string | null>(null);
 
-  const [faceDetectionWarnings, setFaceDetectionWarnings] = useState(0);
+  const faceDetectionWarningsRef = useRef(0);
   const proctoringWarningRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(recognition);
   const latestTranscript = useRef('');
@@ -180,8 +181,8 @@ const ResumeInterviewPage: React.FC<{
   const handleFaceOutOfFrame = useCallback(() => {
     if (isTerminatedRef.current || interviewState !== 'inProgress') return;
     
-    if (faceDetectionWarnings === 0) {
-      setFaceDetectionWarnings(1);
+    if (faceDetectionWarningsRef.current === 0) {
+      faceDetectionWarningsRef.current = 1;
       if (proctoringWarningRef.current) {
         proctoringWarningRef.current.style.opacity = '1';
         setTimeout(() => {
@@ -192,8 +193,13 @@ const ResumeInterviewPage: React.FC<{
       isTerminatedRef.current = true;
       onTerminate('face_detection', 'Interview terminated due to repeated face detection issues.');
     }
-  }, [faceDetectionWarnings, onTerminate, interviewState]);
+  }, [onTerminate, interviewState]);
   // --- End Proctoring Logic ---
+
+  const handleProctoringError = useCallback((err: string) => {
+    setProctoringStatus('error');
+    setProctoringError(err);
+  }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -395,7 +401,7 @@ const ResumeInterviewPage: React.FC<{
     }
   };
 
-  if (proctoringStatus === 'pending') { return (<div className="min-h-screen w-full flex flex-col items-center justify-center p-4"><Spinner /><p className="mt-4 text-xl text-slate-600 dark:text-slate-300">Waiting for camera & microphone permissions...</p><p className="mt-2 text-sm text-slate-500 dark:text-slate-500">Please check your browser for a permission prompt.</p><div className="opacity-0 invisible absolute"><ProctoringView onReady={() => setProctoringStatus('ready')} onError={(err) => { setProctoringStatus('error'); setProctoringError(err); }} /></div></div>); }
+  if (proctoringStatus === 'pending') { return (<div className="min-h-screen w-full flex flex-col items-center justify-center p-4"><Spinner /><p className="mt-4 text-xl text-slate-600 dark:text-slate-300">Waiting for camera & microphone permissions...</p><p className="mt-2 text-sm text-slate-500 dark:text-slate-500">Please check your browser for a permission prompt.</p><div className="opacity-0 invisible absolute"><ProctoringView onReady={useCallback(() => setProctoringStatus('ready'), [])} onError={handleProctoringError} /></div></div>); }
   if (proctoringStatus === 'error') { return (<div className="min-h-screen w-full flex flex-col items-center justify-center p-4 text-center"><h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Permission Error</h2><p className="text-slate-600 dark:text-slate-300 max-w-md mb-6">{proctoringError}</p><button onClick={onEndSession} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg">Back to Dashboard</button></div>); }
   
   return (
@@ -403,7 +409,7 @@ const ResumeInterviewPage: React.FC<{
       {renderInterviewContent()}
       <ProctoringView 
         onReady={() => {}} 
-        onError={(err) => { setProctoringStatus('error'); setProctoringError(err); }}
+        onError={handleProctoringError}
         enableFaceDetection={interviewState === 'inProgress'}
         onFaceOutOfFrame={handleFaceOutOfFrame}
       />
