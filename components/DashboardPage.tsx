@@ -1,5 +1,7 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import type { AppView } from '../types';
+import InstructionModal from './InstructionModal';
 
 interface DashboardPageProps {
   username: string;
@@ -16,7 +18,35 @@ const ApiWarningBanner: React.FC = () => (
     </div>
 );
 
+const resumeInstructions = [
+    "Ensure your camera and microphone are enabled and working.",
+    "Find a quiet, well-lit environment to avoid distractions.",
+    "The session will be recorded for proctoring purposes.",
+    "Speak clearly into your microphone when answering questions.",
+    "You cannot end the interview until all questions are answered."
+];
+
+const mcqInstructions = [
+    "Ensure your camera and microphone are enabled and working.",
+    "This is a timed test. Make sure your internet connection is stable.",
+    "The session will be recorded for proctoring purposes.",
+    "Once you submit an answer, you cannot go back.",
+    "Read each question carefully before selecting an answer."
+];
+
+
 const DashboardPage: React.FC<DashboardPageProps> = ({ username, setView, isApiKeyConfigured }) => {
+  const [instructionModal, setInstructionModal] = useState<'resume' | 'mcq' | null>(null);
+
+  const handleStartInterview = () => {
+    if (instructionModal === 'resume') {
+        setView('resume-interview');
+    } else if (instructionModal === 'mcq') {
+        setView('mcq-test');
+    }
+    setInstructionModal(null);
+  }
+
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center p-4">
       {!isApiKeyConfigured && <ApiWarningBanner />}
@@ -27,7 +57,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ username, setView, isApiK
       <div className="flex flex-col md:flex-row gap-8">
         <div
           style={{ animationDelay: '0.2s' }}
-          onClick={() => setView('resume-interview')}
+          onClick={() => setInstructionModal('resume')}
           className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-lg p-8 rounded-2xl border border-slate-200 dark:border-slate-700 w-80 cursor-pointer group hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-300 transform hover:-translate-y-2 shadow-lg hover:shadow-2xl animate-fade-in-up"
         >
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-3">Resume Based Interview</h2>
@@ -35,13 +65,21 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ username, setView, isApiK
         </div>
         <div
           style={{ animationDelay: '0.4s' }}
-          onClick={() => setView('mcq-test')}
+          onClick={() => setInstructionModal('mcq')}
           className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-lg p-8 rounded-2xl border border-slate-200 dark:border-slate-700 w-80 cursor-pointer group hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-300 transform hover:-translate-y-2 shadow-lg hover:shadow-2xl animate-fade-in-up"
         >
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-3">MCQ Practice Test</h2>
           <p className="text-slate-600 dark:text-slate-400">Test your knowledge in various technical subjects with our AI-generated multiple-choice questions.</p>
         </div>
       </div>
+      
+      <InstructionModal
+        isOpen={instructionModal !== null}
+        onClose={() => setInstructionModal(null)}
+        onConfirm={handleStartInterview}
+        title={instructionModal === 'resume' ? "Resume Interview Instructions" : "MCQ Test Instructions"}
+        instructions={instructionModal === 'resume' ? resumeInstructions : mcqInstructions}
+      />
     </div>
   );
 };

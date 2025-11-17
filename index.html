@@ -64,11 +64,9 @@
       }
     </style>
     <script>
-      // Set theme before React loads to prevent flash and fix toggle bugs
+      // Set theme based on system preference before React loads to prevent flash
       (function() {
-        const theme = localStorage.getItem('theme');
-        const userPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (theme === 'dark' || (!theme && userPrefersDark)) {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
           document.documentElement.classList.add('dark');
         }
       })();

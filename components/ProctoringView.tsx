@@ -1,12 +1,15 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ScreenIcon } from './icons';
 
 interface ProctoringViewProps {
   onReady: () => void;
   onError: (error: string) => void;
+  enableFaceDetection?: boolean;
+  onFaceOutOfFrame?: () => void;
 }
 
-const ProctoringView: React.FC<ProctoringViewProps> = ({ onReady, onError }) => {
+const ProctoringView: React.FC<ProctoringViewProps> = ({ onReady, onError, enableFaceDetection, onFaceOutOfFrame }) => {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenShareError, setScreenShareError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -15,6 +18,8 @@ const ProctoringView: React.FC<ProctoringViewProps> = ({ onReady, onError }) => 
 
   useEffect(() => {
     let isMounted = true;
+    let faceDetectionTimer: NodeJS.Timeout | null = null;
+    
     const setupMedia = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -33,13 +38,32 @@ const ProctoringView: React.FC<ProctoringViewProps> = ({ onReady, onError }) => 
       }
     };
     setupMedia();
+    
+    if (enableFaceDetection && onFaceOutOfFrame) {
+      const scheduleNextCheck = () => {
+        // In a real scenario, this would be replaced by an ML model.
+        // Here, we simulate a check every 15-25 seconds.
+        const randomInterval = Math.random() * 10000 + 15000;
+        faceDetectionTimer = setTimeout(() => {
+          if (isMounted) {
+            onFaceOutOfFrame();
+            scheduleNextCheck(); // Reschedule for the next check
+          }
+        }, randomInterval);
+      };
+      // Start the first check after an initial delay
+      setTimeout(scheduleNextCheck, 10000);
+    }
 
     return () => {
       isMounted = false;
       userStreamRef.current?.getTracks().forEach(track => track.stop());
       screenStreamRef.current?.getTracks().forEach(track => track.stop());
+      if (faceDetectionTimer) {
+        clearTimeout(faceDetectionTimer);
+      }
     };
-  }, [onReady, onError]);
+  }, [onReady, onError, enableFaceDetection, onFaceOutOfFrame]);
 
   const handleScreenShare = async () => {
     setScreenShareError(null);

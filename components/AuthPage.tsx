@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
     createUserWithEmailAndPassword, 
@@ -54,17 +55,11 @@ interface AuthPageProps {
 const AuthPage: React.FC<AuthPageProps> = ({ setView: setAppView }) => {
   const [view, setView] = useState<'login' | 'signup' | 'terms' | 'privacy'>('login');
   const [name, setName] = useState('');
-  // Read the last logged-in email from localStorage on initial render.
-  const [email, setEmail] = useState(() => localStorage.getItem('lastLoggedInEmail') || '');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resetEmailSentTo, setResetEmailSentTo] = useState<string | null>(null);
-  const [savedEmail, setSavedEmail] = useState<string | null>(null);
-
-  useEffect(() => {
-    setSavedEmail(localStorage.getItem('lastLoggedInEmail'));
-  }, []);
 
   const handleAuthAction = async (action: 'email' | 'google') => {
     setLoading(true);
@@ -73,16 +68,10 @@ const AuthPage: React.FC<AuthPageProps> = ({ setView: setAppView }) => {
 
     try {
         if (action === 'google') {
-            const result = await signInWithPopup(auth, googleProvider);
-            if (result.user.email) {
-                // On successful Google login, save the email to localStorage.
-                localStorage.setItem('lastLoggedInEmail', result.user.email);
-            }
+            await signInWithPopup(auth, googleProvider);
         } else {
             if (view === 'login') {
                 await signInWithEmailAndPassword(auth, email, password);
-                // On successful email login, save the email to localStorage.
-                localStorage.setItem('lastLoggedInEmail', email);
             } else {
                 if(name.trim() === '') {
                     setError("Name is required for sign up.");
@@ -93,8 +82,6 @@ const AuthPage: React.FC<AuthPageProps> = ({ setView: setAppView }) => {
                 if (userCredential.user) {
                     await updateProfile(userCredential.user, { displayName: name });
                 }
-                // On successful sign-up, save the new email to localStorage.
-                localStorage.setItem('lastLoggedInEmail', email);
             }
         }
     } catch (err: any) {
@@ -232,26 +219,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ setView: setAppView }) => {
             </div>
           )}
           <div>
-            <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300">Email</label>
-                {isLogin && savedEmail && email === savedEmail && (
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                        Welcome back!{' '}
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setEmail('');
-                                setSavedEmail(null);
-                                // Also remove from localStorage so it doesn't reappear on refresh.
-                                localStorage.removeItem('lastLoggedInEmail');
-                            }}
-                            className="text-indigo-600 dark:text-indigo-400 hover:underline"
-                        >
-                            Not you?
-                        </button>
-                    </span>
-                )}
-            </div>
+            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Email</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" />
           </div>
           <div>

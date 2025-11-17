@@ -1,4 +1,3 @@
-
 export interface User {
   name: string;
   email: string;
@@ -12,4 +11,6 @@ export interface MCQ {
 
 export type TechnicalSubject = "DBMS" | "CN" | "OOPS" | "DSA" | "OS" | "C++";
 
-export type AppView = 'landing' | 'auth' | 'dashboard' | 'resume-interview' | 'mcq-test';
+export type AppView = 'landing' | 'auth' | 'dashboard' | 'resume-interview' | 'mcq-test' | 'terminated';
+
+export type TerminationReason = 'face_detection';
